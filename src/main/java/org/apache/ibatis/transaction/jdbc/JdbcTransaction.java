@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2018 the original author or authors.
+ *    Copyright 2009-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.apache.ibatis.transaction.jdbc;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+
 import javax.sql.DataSource;
 
 import org.apache.ibatis.logging.Log;
@@ -126,7 +127,7 @@ public class JdbcTransaction implements Transaction {
     } catch (SQLException e) {
       if (log.isDebugEnabled()) {
         log.debug("Error resetting autocommit to true "
-          + "before closing the connection.  Cause: " + e);
+            + "before closing the connection.  Cause: " + e);
       }
     }
   }
@@ -146,5 +147,5 @@ public class JdbcTransaction implements Transaction {
   public Integer getTimeout() throws SQLException {
     return null;
   }
-  
+
 }

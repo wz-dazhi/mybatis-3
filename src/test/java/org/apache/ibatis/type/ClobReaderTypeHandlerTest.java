@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2018 the original author or authors.
+ *    Copyright 2009-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,6 +15,17 @@
  */
 package org.apache.ibatis.type;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.*;
+import java.sql.Clob;
+
+import javax.sql.DataSource;
+
 import org.apache.ibatis.BaseDataTest;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
@@ -25,19 +36,9 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-
-import javax.sql.DataSource;
-import java.io.*;
-import java.sql.Clob;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link ClobReaderTypeHandler}.
@@ -45,7 +46,7 @@ import static org.mockito.Mockito.when;
  * @since 3.4.0
  * @author Kazuki Shimizu
  */
-public class ClobReaderTypeHandlerTest extends BaseTypeHandlerTest {
+class ClobReaderTypeHandlerTest extends BaseTypeHandlerTest {
 
   private static final TypeHandler<Reader> TYPE_HANDLER = new ClobReaderTypeHandler();
 
@@ -54,8 +55,8 @@ public class ClobReaderTypeHandlerTest extends BaseTypeHandlerTest {
   @Mock
   protected Clob clob;
 
-  @BeforeClass
-  public static void setupSqlSessionFactory() throws Exception {
+  @BeforeAll
+  static void setupSqlSessionFactory() throws Exception {
     DataSource dataSource = BaseDataTest.createUnpooledDataSource("org/apache/ibatis/type/jdbc.properties");
     TransactionFactory transactionFactory = new JdbcTransactionFactory();
     Environment environment = new Environment("Production", transactionFactory, dataSource);
@@ -64,7 +65,7 @@ public class ClobReaderTypeHandlerTest extends BaseTypeHandlerTest {
     sqlSessionFactory = new SqlSessionFactoryBuilder().build(configuration);
 
     BaseDataTest.runScript(sqlSessionFactory.getConfiguration().getEnvironment().getDataSource(),
-            "org/apache/ibatis/type/ClobReaderTypeHandlerTest.sql");
+        "org/apache/ibatis/type/ClobReaderTypeHandlerTest.sql");
   }
 
   @Override
@@ -121,9 +122,8 @@ public class ClobReaderTypeHandlerTest extends BaseTypeHandlerTest {
     assertNull(TYPE_HANDLER.getResult(cs, 1));
   }
 
-
   @Test
-  public void integrationTest() throws IOException {
+  void integrationTest() throws IOException {
     try (SqlSession session = sqlSessionFactory.openSession()) {
       Mapper mapper = session.getMapper(Mapper.class);
       // insert (Reader -> Clob)

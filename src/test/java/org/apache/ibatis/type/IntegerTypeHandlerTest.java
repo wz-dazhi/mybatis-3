@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2018 the original author or authors.
+ *    Copyright 2009-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  */
 package org.apache.ibatis.type;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class IntegerTypeHandlerTest extends BaseTypeHandlerTest {
+class IntegerTypeHandlerTest extends BaseTypeHandlerTest {
 
   private static final TypeHandler<Integer> TYPE_HANDLER = new IntegerTypeHandler();
 
@@ -36,11 +36,9 @@ public class IntegerTypeHandlerTest extends BaseTypeHandlerTest {
   @Override
   @Test
   public void shouldGetResultFromResultSetByName() throws Exception {
-    when(rs.getInt("column")).thenReturn(100);
-    assertEquals(new Integer(100), TYPE_HANDLER.getResult(rs, "column"));
-
-    when(rs.getInt("column")).thenReturn(0);
-    assertEquals(new Integer(0), TYPE_HANDLER.getResult(rs, "column"));
+    when(rs.getInt("column")).thenReturn(100, 0);
+    assertEquals(Integer.valueOf(100), TYPE_HANDLER.getResult(rs, "column"));
+    assertEquals(Integer.valueOf(0), TYPE_HANDLER.getResult(rs, "column"));
   }
 
   @Override
@@ -54,11 +52,9 @@ public class IntegerTypeHandlerTest extends BaseTypeHandlerTest {
   @Override
   @Test
   public void shouldGetResultFromResultSetByPosition() throws Exception {
-    when(rs.getInt(1)).thenReturn(100);
-    assertEquals(new Integer(100), TYPE_HANDLER.getResult(rs, 1));
-
-    when(rs.getInt(1)).thenReturn(0);
-    assertEquals(new Integer(0), TYPE_HANDLER.getResult(rs, 1));
+    when(rs.getInt(1)).thenReturn(100, 0);
+    assertEquals(Integer.valueOf(100), TYPE_HANDLER.getResult(rs, 1));
+    assertEquals(Integer.valueOf(0), TYPE_HANDLER.getResult(rs, 1));
   }
 
   @Override
@@ -72,11 +68,9 @@ public class IntegerTypeHandlerTest extends BaseTypeHandlerTest {
   @Override
   @Test
   public void shouldGetResultFromCallableStatement() throws Exception {
-    when(cs.getInt(1)).thenReturn(100);
-    assertEquals(new Integer(100), TYPE_HANDLER.getResult(cs, 1));
-
-    when(cs.getInt(1)).thenReturn(0);
-    assertEquals(new Integer(0), TYPE_HANDLER.getResult(cs, 1));
+    when(cs.getInt(1)).thenReturn(100, 0);
+    assertEquals(Integer.valueOf(100), TYPE_HANDLER.getResult(cs, 1));
+    assertEquals(Integer.valueOf(0), TYPE_HANDLER.getResult(cs, 1));
   }
 
   @Override

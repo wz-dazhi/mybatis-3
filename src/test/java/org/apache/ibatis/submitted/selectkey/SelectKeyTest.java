@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2018 the original author or authors.
+ *    Copyright 2009-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,40 +15,40 @@
  */
 package org.apache.ibatis.submitted.selectkey;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.Reader;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.ibatis.BaseDataTest;
 import org.apache.ibatis.exceptions.PersistenceException;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
-
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import java.io.Reader;
-import java.util.HashMap;
-import java.util.Map;
-
-public class SelectKeyTest {
+class SelectKeyTest {
 
   protected static SqlSessionFactory sqlSessionFactory;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     try (Reader reader = Resources.getResourceAsReader("org/apache/ibatis/submitted/selectkey/MapperConfig.xml")) {
       sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
       sqlSessionFactory.getConfiguration().addMapper(AnnotatedMapper.class);
     }
 
     BaseDataTest.runScript(sqlSessionFactory.getConfiguration().getEnvironment().getDataSource(),
-            "org/apache/ibatis/submitted/selectkey/CreateDB.sql");
+        "org/apache/ibatis/submitted/selectkey/CreateDB.sql");
   }
 
   @Test
-  public void testSelectKey() throws Exception {
+  void testSelectKey() throws Exception {
     // this test checks to make sure that we can have select keys with the same
     // insert id in different namespaces
     String resource = "org/apache/ibatis/submitted/selectkey/MapperConfig.xml";
@@ -59,9 +59,9 @@ public class SelectKeyTest {
   }
 
   @Test
-  public void testInsertTable1() {
+  void testInsertTable1() {
     try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-      Map<String, String> parms = new HashMap<String, String>();
+      Map<String, Object> parms = new HashMap<>();
       parms.put("name", "Fred");
       int rows = sqlSession.insert("org.apache.ibatis.submitted.selectkey.Table1.insert", parms);
       assertEquals(1, rows);
@@ -70,9 +70,9 @@ public class SelectKeyTest {
   }
 
   @Test
-  public void testInsertTable2() {
+  void testInsertTable2() {
     try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-      Map<String, String> parms = new HashMap<String, String>();
+      Map<String, Object> parms = new HashMap<>();
       parms.put("name", "Fred");
       int rows = sqlSession.insert("org.apache.ibatis.submitted.selectkey.Table2.insert", parms);
       assertEquals(1, rows);
@@ -80,263 +80,264 @@ public class SelectKeyTest {
     }
   }
 
-  @Test(expected=PersistenceException.class)
-  public void testSeleckKeyReturnsNoData() {
+  @Test
+  void testSeleckKeyReturnsNoData() {
     try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-      Map<String, String> parms = new HashMap<String, String>();
+      Map<String, String> parms = new HashMap<>();
       parms.put("name", "Fred");
-      int rows = sqlSession.insert("org.apache.ibatis.submitted.selectkey.Table2.insertNoValuesInSelectKey", parms);
+      Assertions.assertThrows(PersistenceException.class,
+          () -> sqlSession.insert("org.apache.ibatis.submitted.selectkey.Table2.insertNoValuesInSelectKey", parms));
+    }
+  }
+
+  @Test
+  void testSeleckKeyReturnsTooManyData() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Map<String, String> parms = new HashMap<>();
+      parms.put("name", "Fred");
+      sqlSession.insert("org.apache.ibatis.submitted.selectkey.Table2.insertTooManyValuesInSelectKey", parms);
+      Assertions.assertThrows(PersistenceException.class, () -> sqlSession
+          .insert("org.apache.ibatis.submitted.selectkey.Table2.insertTooManyValuesInSelectKey", parms));
+    }
+  }
+
+  @Test
+  void testAnnotatedInsertTable2() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2(name);
       assertEquals(1, rows);
-      assertNull(parms.get("id"));
+      assertEquals(22, name.getNameId());
     }
   }
 
-  @Test(expected=PersistenceException.class)
-  public void testSeleckKeyReturnsTooManyData() {
+  @Test
+  void testAnnotatedInsertTable2WithGeneratedKey() {
     try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-      Map<String, String> parms = new HashMap<String, String>();
-      parms.put("name", "Fred");
-      sqlSession.insert("org.apache.ibatis.submitted.selectkey.Table2.insertTooManyValuesInSelectKey", parms);
-      sqlSession.insert("org.apache.ibatis.submitted.selectkey.Table2.insertTooManyValuesInSelectKey", parms);
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithGeneratedKey(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
     }
   }
 
   @Test
-  public void testAnnotatedInsertTable2() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-      }
+  @Disabled("HSQLDB is not returning the generated column after the update")
+  void testAnnotatedUpdateTable2WithGeneratedKey() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithGeneratedKey(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+
+      name.setName("Wilma");
+      rows = mapper.updateTable2WithGeneratedKey(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("Wilma_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  public void testAnnotatedInsertTable2WithGeneratedKey() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithGeneratedKey(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-      }
+  @Disabled("HSQLDB is not returning the generated column after the update")
+  void testAnnotatedUpdateTable2WithGeneratedKeyXml() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithGeneratedKeyXml(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+
+      name.setName("Wilma");
+      rows = mapper.updateTable2WithGeneratedKeyXml(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("Wilma_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  @Ignore("HSQLDB is not returning the generated column after the update")
-  public void testAnnotatedUpdateTable2WithGeneratedKey() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithGeneratedKey(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-        
-        name.setName("Wilma");
-        rows = mapper.updateTable2WithGeneratedKey(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("Wilma_fred", name.getGeneratedName());
-      }
+  void testAnnotatedInsertTable2WithGeneratedKeyXml() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithGeneratedKeyXml(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  @Ignore("HSQLDB is not returning the generated column after the update")
-  public void testAnnotatedUpdateTable2WithGeneratedKeyXml() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithGeneratedKeyXml(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-        
-        name.setName("Wilma");
-        rows = mapper.updateTable2WithGeneratedKeyXml(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("Wilma_fred", name.getGeneratedName());
-      }
+  void testAnnotatedInsertTable2WithSelectKeyWithKeyMap() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithSelectKeyWithKeyMap(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  public void testAnnotatedInsertTable2WithGeneratedKeyXml() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithGeneratedKeyXml(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-      }
+  void testAnnotatedUpdateTable2WithSelectKeyWithKeyMap() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithSelectKeyWithKeyMap(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+
+      name.setName("Wilma");
+      rows = mapper.updateTable2WithSelectKeyWithKeyMap(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("Wilma_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  public void testAnnotatedInsertTable2WithSelectKeyWithKeyMap() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithSelectKeyWithKeyMap(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-      }
+  void testAnnotatedInsertTable2WithSelectKeyWithKeyMapXml() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithSelectKeyWithKeyMapXml(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  public void testAnnotatedUpdateTable2WithSelectKeyWithKeyMap() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithSelectKeyWithKeyMap(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-        
-        name.setName("Wilma");
-        rows = mapper.updateTable2WithSelectKeyWithKeyMap(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("Wilma_fred", name.getGeneratedName());
-      }
+  void testAnnotatedUpdateTable2WithSelectKeyWithKeyMapXml() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithSelectKeyWithKeyMapXml(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+
+      name.setName("Wilma");
+      rows = mapper.updateTable2WithSelectKeyWithKeyMapXml(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("Wilma_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  public void testAnnotatedInsertTable2WithSelectKeyWithKeyMapXml() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithSelectKeyWithKeyMapXml(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-      }
+  void testAnnotatedInsertTable2WithSelectKeyWithKeyObject() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithSelectKeyWithKeyObject(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  public void testAnnotatedUpdateTable2WithSelectKeyWithKeyMapXml() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithSelectKeyWithKeyMapXml(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
+  void testAnnotatedUpdateTable2WithSelectKeyWithKeyObject() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithSelectKeyWithKeyObject(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
 
-        name.setName("Wilma");
-        rows = mapper.updateTable2WithSelectKeyWithKeyMapXml(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("Wilma_fred", name.getGeneratedName());
-      }
+      name.setName("Wilma");
+      rows = mapper.updateTable2WithSelectKeyWithKeyObject(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("Wilma_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  public void testAnnotatedInsertTable2WithSelectKeyWithKeyObject() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithSelectKeyWithKeyObject(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-      }
+  void testAnnotatedUpdateTable2WithSelectKeyWithKeyObjectXml() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithSelectKeyWithKeyObjectXml(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+
+      name.setName("Wilma");
+      rows = mapper.updateTable2WithSelectKeyWithKeyObjectXml(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("Wilma_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  public void testAnnotatedUpdateTable2WithSelectKeyWithKeyObject() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithSelectKeyWithKeyObject(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-
-        name.setName("Wilma");
-        rows = mapper.updateTable2WithSelectKeyWithKeyObject(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("Wilma_fred", name.getGeneratedName());
-      }
+  void testAnnotatedInsertTable2WithSelectKeyWithKeyObjectXml() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable2WithSelectKeyWithKeyObjectXml(name);
+      assertEquals(1, rows);
+      assertEquals(22, name.getNameId());
+      assertEquals("barney_fred", name.getGeneratedName());
+    }
   }
 
   @Test
-  public void testAnnotatedUpdateTable2WithSelectKeyWithKeyObjectXml() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithSelectKeyWithKeyObjectXml(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-
-        name.setName("Wilma");
-        rows = mapper.updateTable2WithSelectKeyWithKeyObjectXml(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("Wilma_fred", name.getGeneratedName());
-      }
+  void testAnnotatedInsertTable3() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable3(name);
+      assertEquals(1, rows);
+      assertEquals(33, name.getNameId());
+    }
   }
 
   @Test
-  public void testAnnotatedInsertTable2WithSelectKeyWithKeyObjectXml() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable2WithSelectKeyWithKeyObjectXml(name);
-        assertEquals(1, rows);
-        assertEquals(22, name.getNameId());
-        assertEquals("barney_fred", name.getGeneratedName());
-      }
+  void testAnnotatedInsertTable3_2() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      Name name = new Name();
+      name.setName("barney");
+      AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
+      int rows = mapper.insertTable3_2(name);
+      assertEquals(1, rows);
+      assertEquals(33, name.getNameId());
+    }
   }
 
   @Test
-  public void testAnnotatedInsertTable3() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable3(name);
-        assertEquals(1, rows);
-        assertEquals(33, name.getNameId());
-      }
-  }
-
-  @Test
-  public void testAnnotatedInsertTable3_2() {
-      try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-        Name name = new Name();
-        name.setName("barney");
-        AnnotatedMapper mapper = sqlSession.getMapper(AnnotatedMapper.class);
-        int rows = mapper.insertTable3_2(name);
-        assertEquals(1, rows);
-        assertEquals(33, name.getNameId());
-      }
-  }
-
-  @Test(expected = PersistenceException.class)
-  public void testSeleckKeyWithWrongKeyProperty() {
+  void testSeleckKeyWithWrongKeyProperty() {
     try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
       Name name = new Name();
       name.setName("Kyoto");
-      sqlSession.insert("org.apache.ibatis.submitted.selectkey.Table2.insertWrongKeyProperty", name);
+      Assertions.assertThrows(PersistenceException.class,
+          () -> sqlSession.insert("org.apache.ibatis.submitted.selectkey.Table2.insertWrongKeyProperty", name));
     }
   }
 }

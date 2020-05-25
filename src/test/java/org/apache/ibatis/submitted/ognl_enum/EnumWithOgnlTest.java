@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2018 the original author or authors.
+ *    Copyright 2009-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -24,76 +24,66 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.ibatis.submitted.ognl_enum.Person.Type;
-import org.apache.ibatis.submitted.ognl_enum.PersonMapper.PersonType;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
-public class EnumWithOgnlTest {
-    
-    private static SqlSessionFactory sqlSessionFactory;
-    
-    @BeforeClass
-    public static void initDatabase() throws Exception {
-        try (Reader reader = Resources.getResourceAsReader("org/apache/ibatis/submitted/ognl_enum/ibatisConfig.xml")) {
-            sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
-        }
+class EnumWithOgnlTest {
 
-        BaseDataTest.runScript(sqlSessionFactory.getConfiguration().getEnvironment().getDataSource(),
-                "org/apache/ibatis/submitted/ognl_enum/CreateDB.sql");
+  private static SqlSessionFactory sqlSessionFactory;
+
+  @BeforeAll
+  static void initDatabase() throws Exception {
+    try (Reader reader = Resources.getResourceAsReader("org/apache/ibatis/submitted/ognl_enum/ibatisConfig.xml")) {
+      sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
     }
-    
-    @Test
-    public void testEnumWithOgnl() {
-        try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-            PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
-            List<Person> persons = personMapper.selectAllByType(null);
-            Assert.assertEquals("Persons must contain 3 persons", 3, persons.size());
-        }
-    }
+
+    BaseDataTest.runScript(sqlSessionFactory.getConfiguration().getEnvironment().getDataSource(),
+        "org/apache/ibatis/submitted/ognl_enum/CreateDB.sql");
+  }
 
   @Test
-    public void testEnumWithOgnlDirector() {
-        try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-            PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
-            List<Person> persons = personMapper.selectAllByType(Person.Type.DIRECTOR);
-            Assert.assertEquals("Persons must contain 1 persons", 1, persons.size());
-        }
+  void testEnumWithOgnl() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
+      List<Person> persons = personMapper.selectAllByType(null);
+      Assertions.assertEquals(3, persons.size(), "Persons must contain 3 persons");
     }
-
-    @Test
-    public void testEnumWithOgnlDirectorNameAttribute() {
-        try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-            PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
-            List<Person> persons = personMapper.selectAllByTypeNameAttribute(Person.Type.DIRECTOR);
-            Assert.assertEquals("Persons must contain 1 persons", 1, persons.size());
-        }
-    }
+  }
 
   @Test
-    public void testEnumWithOgnlDirectorWithInterface() {
-        try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-            PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
-            List<Person> persons = personMapper.selectAllByTypeWithInterface(new PersonType() {
-                @Override
-                public Type getType() {
-                    return Person.Type.DIRECTOR;
-                }
-            });
-            Assert.assertEquals("Persons must contain 1 persons", 1, persons.size());
-        }
+  void testEnumWithOgnlDirector() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
+      List<Person> persons = personMapper.selectAllByType(Person.Type.DIRECTOR);
+      Assertions.assertEquals(1, persons.size(), "Persons must contain 1 persons");
     }
-    @Test
-    public void testEnumWithOgnlDirectorNameAttributeWithInterface() {
-        try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
-            PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
-            List<Person> persons = personMapper.selectAllByTypeNameAttributeWithInterface(new PersonType() {
-                @Override
-                public Type getType() {
-                    return Person.Type.DIRECTOR;
-                }
-            });
-            Assert.assertEquals("Persons must contain 1 persons", 1, persons.size());
-        }
+  }
+
+  @Test
+  void testEnumWithOgnlDirectorNameAttribute() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
+      List<Person> persons = personMapper.selectAllByTypeNameAttribute(Person.Type.DIRECTOR);
+      Assertions.assertEquals(1, persons.size(), "Persons must contain 1 persons");
     }
+  }
+
+  @Test
+  void testEnumWithOgnlDirectorWithInterface() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
+      List<Person> persons = personMapper.selectAllByTypeWithInterface(() -> Type.DIRECTOR);
+      Assertions.assertEquals(1, persons.size(), "Persons must contain 1 persons");
+    }
+  }
+
+  @Test
+  void testEnumWithOgnlDirectorNameAttributeWithInterface() {
+    try (SqlSession sqlSession = sqlSessionFactory.openSession()) {
+      PersonMapper personMapper = sqlSession.getMapper(PersonMapper.class);
+      List<Person> persons = personMapper.selectAllByTypeNameAttributeWithInterface(() -> Type.DIRECTOR);
+      Assertions.assertEquals(1, persons.size(), "Persons must contain 1 persons");
+    }
+  }
 }

@@ -1,5 +1,5 @@
 /**
- *    Copyright 2009-2018 the original author or authors.
+ *    Copyright 2009-2020 the original author or authors.
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
  */
 package org.apache.ibatis.binding;
 
-import org.apache.ibatis.builder.annotation.MapperAnnotationBuilder;
-import org.apache.ibatis.io.ResolverUtil;
-import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.SqlSession;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.ibatis.builder.annotation.MapperAnnotationBuilder;
+import org.apache.ibatis.io.ResolverUtil;
+import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.SqlSession;
 
 /**
  * @author Clinton Begin
@@ -52,7 +52,7 @@ public class MapperRegistry {
       throw new BindingException("Error getting mapper instance. Cause: " + e, e);
     }
   }
-  
+
   public <T> boolean hasMapper(Class<T> type) {
     return knownMappers.containsKey(type);
   }
@@ -64,7 +64,7 @@ public class MapperRegistry {
       }
       boolean loadCompleted = false;
       try {
-        knownMappers.put(type, new MapperProxyFactory<T>(type));
+        knownMappers.put(type, new MapperProxyFactory<>(type));
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
@@ -80,6 +80,9 @@ public class MapperRegistry {
   }
 
   /**
+   * Gets the mappers.
+   *
+   * @return the mappers
    * @since 3.2.2
    */
   public Collection<Class<?>> getMappers() {
@@ -87,6 +90,12 @@ public class MapperRegistry {
   }
 
   /**
+   * Adds the mappers.
+   *
+   * @param packageName
+   *          the package name
+   * @param superType
+   *          the super type
    * @since 3.2.2
    */
   public void addMappers(String packageName, Class<?> superType) {
@@ -99,10 +108,14 @@ public class MapperRegistry {
   }
 
   /**
+   * Adds the mappers.
+   *
+   * @param packageName
+   *          the package name
    * @since 3.2.2
    */
   public void addMappers(String packageName) {
     addMappers(packageName, Object.class);
   }
-  
+
 }
