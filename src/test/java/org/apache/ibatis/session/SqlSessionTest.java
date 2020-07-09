@@ -15,33 +15,11 @@
  */
 package org.apache.ibatis.session;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
-
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import javassist.util.proxy.Proxy;
-
 import org.apache.ibatis.BaseDataTest;
 import org.apache.ibatis.binding.BindingException;
 import org.apache.ibatis.cache.impl.PerpetualCache;
-import org.apache.ibatis.domain.blog.Author;
-import org.apache.ibatis.domain.blog.Blog;
-import org.apache.ibatis.domain.blog.Comment;
-import org.apache.ibatis.domain.blog.DraftPost;
-import org.apache.ibatis.domain.blog.ImmutableAuthor;
-import org.apache.ibatis.domain.blog.Post;
-import org.apache.ibatis.domain.blog.Section;
-import org.apache.ibatis.domain.blog.Tag;
+import org.apache.ibatis.domain.blog.*;
 import org.apache.ibatis.domain.blog.mappers.AuthorMapper;
 import org.apache.ibatis.domain.blog.mappers.AuthorMapperWithMultipleHandlers;
 import org.apache.ibatis.domain.blog.mappers.AuthorMapperWithRowBounds;
@@ -58,14 +36,21 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.io.Reader;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 class SqlSessionTest extends BaseDataTest {
   private static SqlSessionFactory sqlMapper;
 
   @BeforeAll
   static void setup() throws Exception {
+    // 初始化blog数据源
     createBlogDataSource();
     final String resource = "org/apache/ibatis/builder/MapperConfig.xml";
     final Reader reader = Resources.getResourceAsReader(resource);
+    // 构建SqlSessionFactory
     sqlMapper = new SqlSessionFactoryBuilder().build(reader);
   }
 
