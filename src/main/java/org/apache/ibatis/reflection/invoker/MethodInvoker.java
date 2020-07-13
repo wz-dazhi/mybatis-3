@@ -25,7 +25,13 @@ import java.lang.reflect.Method;
  */
 public class MethodInvoker implements Invoker {
 
+  /**
+   * 类
+   */
   private final Class<?> type;
+  /**
+   * 方法
+   */
   private final Method method;
 
   public MethodInvoker(Method method) {
@@ -45,6 +51,7 @@ public class MethodInvoker implements Invoker {
     try {
       return method.invoke(target, args);
     } catch (IllegalAccessException e) {
+      // 设置私有方法可访问
       if (Reflector.canControlMemberAccessible()) {
         method.setAccessible(true);
         return method.invoke(target, args);
@@ -54,6 +61,11 @@ public class MethodInvoker implements Invoker {
     }
   }
 
+  /**
+   * 返回类的具体类型
+   *
+   * @return
+   */
   @Override
   public Class<?> getType() {
     return type;
