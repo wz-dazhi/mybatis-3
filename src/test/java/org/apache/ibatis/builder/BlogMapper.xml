@@ -115,7 +115,7 @@
     </discriminator>
   </resultMap>
 
-  <select id="selectBlogJoinedWithPostsAndAuthor" parameterType="int" resultMap="blogJoinedWithPostsAndAuthor">
+  <select id="selectBlogJoinedWithPostsAndAuthor" parameterType="org.apache.ibatis.session.SqlSessionTest" resultMap="blogJoinedWithPostsAndAuthor">
     select
     B.id as blog_id,
     B.title as blog_title,
@@ -146,7 +146,7 @@
     left outer join Comment C on P.id = C.post_id
     left outer join Post_Tag PT on PT.post_id = P.id
     left outer join Tag T on PT.tag_id = T.id
-    where B.id = #{id}
+    where B.id = #{a.b.id}
   </select>
 
   <select id="selectAllPosts" resultType="hashmap">

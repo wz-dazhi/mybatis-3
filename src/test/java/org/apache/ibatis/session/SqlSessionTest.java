@@ -332,10 +332,53 @@ class SqlSessionTest extends BaseDataTest {
     }
   }
 
+  private A a;
+
+  public A getA() {
+    return a;
+  }
+
+  public void setA(A a) {
+    this.a = a;
+  }
+
+  public static class A {
+    private B b;
+
+    public B getB() {
+      return b;
+    }
+
+    public void setB(B b) {
+      this.b = b;
+    }
+  }
+
+  public static class B {
+    private int id;
+
+    public int getId() {
+      return id;
+    }
+
+    public void setId(int id) {
+      this.id = id;
+    }
+
+    public B() {
+    }
+  }
+
   @Test
   void shouldSelectBlogWithPostsAndAuthorUsingJoin() {
+    final SqlSessionTest t = new SqlSessionTest();
+    final A a = new A();
+    final B b = new B();
+    b.setId(1);
+    a.setB(b);
+    t.setA(a);
     try (SqlSession session = sqlMapper.openSession()) {
-      Blog blog = session.selectOne("org.apache.ibatis.domain.blog.mappers.BlogMapper.selectBlogJoinedWithPostsAndAuthor", 1);
+      Blog blog = session.selectOne("org.apache.ibatis.domain.blog.mappers.BlogMapper.selectBlogJoinedWithPostsAndAuthor", t);
       assertEquals("Jim Business", blog.getTitle());
 
       final Author author = blog.getAuthor();
