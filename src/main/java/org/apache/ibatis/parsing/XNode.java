@@ -1,25 +1,19 @@
 /**
- *    Copyright 2009-2020 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2020 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.parsing;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.function.Supplier;
 
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.Element;
@@ -27,24 +21,54 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.function.Supplier;
+
 /**
  * @author Clinton Begin
  */
 public class XNode {
 
+  /**
+   * Node对象
+   */
   private final Node node;
+  /**
+   * Node名字
+   */
   private final String name;
+  /**
+   * Node body
+   */
   private final String body;
+  /**
+   * Node 属性配置
+   */
   private final Properties attributes;
+  /**
+   * 变量替换
+   */
   private final Properties variables;
+  /**
+   * XPathParser
+   */
   private final XPathParser xpathParser;
 
   public XNode(XPathParser xpathParser, Node node, Properties variables) {
+    // xpathParser 对象
     this.xpathParser = xpathParser;
+    // node
     this.node = node;
+    // node 名字
     this.name = node.getNodeName();
+    // 变量
     this.variables = variables;
+    // node解析属性
     this.attributes = parseAttributes(node);
+    // 解析body
     this.body = parseBody(node);
   }
 
@@ -82,13 +106,13 @@ public class XNode {
         builder.insert(0, "_");
       }
       String value = current.getStringAttribute("id",
-          current.getStringAttribute("value",
-              current.getStringAttribute("property", (String) null)));
+        current.getStringAttribute("value",
+          current.getStringAttribute("property", (String) null)));
       if (value != null) {
         value = value.replace('.', '_');
         builder.insert(0, "]");
         builder.insert(0,
-            value);
+          value);
         builder.insert(0, "[");
       }
       builder.insert(0, current.getName());
@@ -216,10 +240,8 @@ public class XNode {
    * <p>
    * If attribute value is absent, return value that provided from supplier of default value.
    *
-   * @param name
-   *          attribute name
-   * @param defSupplier
-   *          a supplier of default value
+   * @param name        attribute name
+   * @param defSupplier a supplier of default value
    * @return the string attribute
    * @since 3.5.4
    */
@@ -385,6 +407,7 @@ public class XNode {
     if (attributeNodes != null) {
       for (int i = 0; i < attributeNodes.getLength(); i++) {
         Node attribute = attributeNodes.item(i);
+        // 解析属性, 动态替换变量
         String value = PropertyParser.parse(attribute.getNodeValue(), variables);
         attributes.put(attribute.getNodeName(), value);
       }
@@ -409,8 +432,9 @@ public class XNode {
 
   private String getBodyData(Node child) {
     if (child.getNodeType() == Node.CDATA_SECTION_NODE
-        || child.getNodeType() == Node.TEXT_NODE) {
+      || child.getNodeType() == Node.TEXT_NODE) {
       String data = ((CharacterData) child).getData();
+      // 解析data, 动态替换
       data = PropertyParser.parse(data, variables);
       return data;
     }

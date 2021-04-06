@@ -1,34 +1,19 @@
 /**
- *    Copyright 2009-2019 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Copyright 2009-2019 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.ibatis.parsing;
-
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
-import javax.xml.XMLConstants;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 
 import org.apache.ibatis.builder.BuilderException;
 import org.w3c.dom.Document;
@@ -40,16 +25,47 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 /**
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
 public class XPathParser {
 
+  /**
+   * 解析xml的Document对象
+   */
   private final Document document;
+  /**
+   * 是否校验xml
+   */
   private boolean validation;
+  /**
+   * 实体解析; 用于加载本地的mybatis-3-config.dtd
+   */
   private EntityResolver entityResolver;
+  /**
+   * 变量; 用来替换动态的配置值
+   * 如: ${driver}
+   * <property name="driver" value="${driver}"/>
+   */
   private Properties variables;
+  /**
+   * xpath对象
+   */
   private XPath xpath;
 
   public XPathParser(String xml) {
@@ -141,7 +157,9 @@ public class XPathParser {
   }
 
   public String evalString(Object root, String expression) {
+    // 返回表达式的结果
     String result = (String) evaluate(expression, root, XPathConstants.STRING);
+    // 动态解析result
     result = PropertyParser.parse(result, variables);
     return result;
   }
@@ -219,6 +237,14 @@ public class XPathParser {
     return new XNode(this, node, variables);
   }
 
+  /**
+   * 根据xpath表达式解析值
+   *
+   * @param expression 表达式
+   * @param root       指定节点
+   * @param returnType 返回类型
+   * @return
+   */
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
       return xpath.evaluate(expression, root, returnType);
@@ -227,21 +253,33 @@ public class XPathParser {
     }
   }
 
+  /**
+   * 创建document 对象
+   *
+   * @param inputSource 输入源
+   */
   private Document createDocument(InputSource inputSource) {
     // important: this must only be called AFTER common constructor
     try {
+      // DocumentBuilderFactory 构建DocumentBuilder
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      // true 表示安全的处理xml, false 表示根据xml规范处理xml, 忽略安全性
       factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+      // 是否校验
       factory.setValidating(validation);
 
+      // 不支持命名空间
       factory.setNamespaceAware(false);
+      // 忽略注释
       factory.setIgnoringComments(true);
+      // 忽略空格
       factory.setIgnoringElementContentWhitespace(false);
       factory.setCoalescing(false);
       factory.setExpandEntityReferences(true);
 
       DocumentBuilder builder = factory.newDocumentBuilder();
       builder.setEntityResolver(entityResolver);
+      // 设置解析错误handler
       builder.setErrorHandler(new ErrorHandler() {
         @Override
         public void error(SAXParseException exception) throws SAXException {
@@ -258,12 +296,20 @@ public class XPathParser {
           // NOP
         }
       });
+      // 解析返回Document
       return builder.parse(inputSource);
     } catch (Exception e) {
       throw new BuilderException("Error creating document instance.  Cause: " + e, e);
     }
   }
 
+  /**
+   * 公共构造方法
+   *
+   * @param validation     是否校验xml
+   * @param variables      动态配置properties
+   * @param entityResolver 实体解析
+   */
   private void commonConstructor(boolean validation, Properties variables, EntityResolver entityResolver) {
     this.validation = validation;
     this.entityResolver = entityResolver;
