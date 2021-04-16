@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 /**
  * This class represents a cached set of class definition information that
  * allows for easy mapping between property names and getter/setter methods.
+ * 反射器, 一个类对应一个反射器
  *
  * @author Clinton Begin
  */
@@ -99,8 +100,10 @@ public class Reflector {
   private void addDefaultConstructor(Class<?> clazz) {
     Constructor<?>[] constructors = clazz.getDeclaredConstructors();
     // stream 流遍历所有构造方法, 过滤无参的构造方法, 如果不为空 -> 并设置为默认构造器
-    Arrays.stream(constructors).filter(constructor -> constructor.getParameterTypes().length == 0)
-      .findAny().ifPresent(constructor -> this.defaultConstructor = constructor);
+    Arrays.stream(constructors)
+      .filter(constructor -> constructor.getParameterTypes().length == 0)
+      .findAny()
+      .ifPresent(constructor -> this.defaultConstructor = constructor);
   }
 
   private void addGetMethods(Class<?> clazz) {
