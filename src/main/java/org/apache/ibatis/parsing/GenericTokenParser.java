@@ -1,5 +1,5 @@
 /**
- * Copyright 2009-2019 the original author or authors.
+ * Copyright 2009-2020 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,8 +64,8 @@ public class GenericTokenParser {
     final StringBuilder builder = new StringBuilder();
     // 匹配 openToken closeToken 之间的表达式
     StringBuilder expression = null;
-    while (start > -1) {
-      // 转义字符
+    // 转义字符
+    do {
       if (start > 0 && src[start - 1] == '\\') {
         // this open token is escaped. remove the backslash and continue.
         builder.append(src, offset, start - offset - 1).append(openToken);
@@ -105,7 +105,7 @@ public class GenericTokenParser {
         }
       }
       start = text.indexOf(openToken, offset);
-    }
+    } while (start > -1);
     if (offset < src.length) {
       builder.append(src, offset, src.length - offset);
     }

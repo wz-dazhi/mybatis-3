@@ -154,11 +154,7 @@ public class XNode {
   }
 
   public String getStringBody(String def) {
-    if (body == null) {
-      return def;
-    } else {
-      return body;
-    }
+    return body == null ? def : body;
   }
 
   public Boolean getBooleanBody() {
@@ -166,11 +162,7 @@ public class XNode {
   }
 
   public Boolean getBooleanBody(Boolean def) {
-    if (body == null) {
-      return def;
-    } else {
-      return Boolean.valueOf(body);
-    }
+    return body == null ? def : Boolean.valueOf(body);
   }
 
   public Integer getIntBody() {
@@ -178,11 +170,7 @@ public class XNode {
   }
 
   public Integer getIntBody(Integer def) {
-    if (body == null) {
-      return def;
-    } else {
-      return Integer.parseInt(body);
-    }
+    return body == null ? def : Integer.valueOf(body);
   }
 
   public Long getLongBody() {
@@ -190,11 +178,7 @@ public class XNode {
   }
 
   public Long getLongBody(Long def) {
-    if (body == null) {
-      return def;
-    } else {
-      return Long.parseLong(body);
-    }
+    return body == null ? def : Long.valueOf(body);
   }
 
   public Double getDoubleBody() {
@@ -202,11 +186,7 @@ public class XNode {
   }
 
   public Double getDoubleBody(Double def) {
-    if (body == null) {
-      return def;
-    } else {
-      return Double.parseDouble(body);
-    }
+    return body == null ? def : Double.valueOf(body);
   }
 
   public Float getFloatBody() {
@@ -214,11 +194,7 @@ public class XNode {
   }
 
   public Float getFloatBody(Float def) {
-    if (body == null) {
-      return def;
-    } else {
-      return Float.parseFloat(body);
-    }
+    return body == null ? def : Float.valueOf(body);
   }
 
   public <T extends Enum<T>> T getEnumAttribute(Class<T> enumType, String name) {
@@ -227,11 +203,7 @@ public class XNode {
 
   public <T extends Enum<T>> T getEnumAttribute(Class<T> enumType, String name, T def) {
     String value = getStringAttribute(name);
-    if (value == null) {
-      return def;
-    } else {
-      return Enum.valueOf(enumType, value);
-    }
+    return value == null ? def : Enum.valueOf(enumType,value);
   }
 
   /**
@@ -256,11 +228,7 @@ public class XNode {
 
   public String getStringAttribute(String name, String def) {
     String value = attributes.getProperty(name);
-    if (value == null) {
-      return def;
-    } else {
-      return value;
-    }
+    return value == null ? def : value;
   }
 
   public Boolean getBooleanAttribute(String name) {
@@ -269,11 +237,7 @@ public class XNode {
 
   public Boolean getBooleanAttribute(String name, Boolean def) {
     String value = attributes.getProperty(name);
-    if (value == null) {
-      return def;
-    } else {
-      return Boolean.valueOf(value);
-    }
+    return value == null ? def : Boolean.valueOf(value);
   }
 
   public Integer getIntAttribute(String name) {
@@ -282,11 +246,7 @@ public class XNode {
 
   public Integer getIntAttribute(String name, Integer def) {
     String value = attributes.getProperty(name);
-    if (value == null) {
-      return def;
-    } else {
-      return Integer.parseInt(value);
-    }
+    return value == null ? def : Integer.valueOf(value);
   }
 
   public Long getLongAttribute(String name) {
@@ -295,11 +255,7 @@ public class XNode {
 
   public Long getLongAttribute(String name, Long def) {
     String value = attributes.getProperty(name);
-    if (value == null) {
-      return def;
-    } else {
-      return Long.parseLong(value);
-    }
+    return value == null ? def : Long.valueOf(value);
   }
 
   public Double getDoubleAttribute(String name) {
@@ -308,11 +264,7 @@ public class XNode {
 
   public Double getDoubleAttribute(String name, Double def) {
     String value = attributes.getProperty(name);
-    if (value == null) {
-      return def;
-    } else {
-      return Double.parseDouble(value);
-    }
+    return value == null ? def : Double.valueOf(value);
   }
 
   public Float getFloatAttribute(String name) {
@@ -321,11 +273,7 @@ public class XNode {
 
   public Float getFloatAttribute(String name, Float def) {
     String value = attributes.getProperty(name);
-    if (value == null) {
-      return def;
-    } else {
-      return Float.parseFloat(value);
-    }
+    return value == null ? def : Float.valueOf(value);
   }
 
   public List<XNode> getChildren() {
