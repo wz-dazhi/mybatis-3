@@ -19,6 +19,7 @@ INSERT INTO author (id,username, password, email, bio, favourite_section) VALUES
 
 INSERT INTO blog (id,author_id,title) VALUES (1,101,'Jim Business');
 INSERT INTO blog (id,author_id,title) VALUES (2,102,'Bally Slog');
+INSERT INTO blog (id,author_id,title) VALUES (3,103,'Da Zhi');
 
 INSERT INTO post (id,blog_id,author_id,created_on,section,subject,body,draft) VALUES (1,1,101,'2007-12-05-00.00.00','NEWS','Corn nuts','I think if I never smelled another corn nut it would be too soon...',1);
 INSERT INTO post (id,blog_id,author_id,created_on,section,subject,body,draft) VALUES (2,1,101,'2008-01-12-00.00.00','VIDEOS','Paul Hogan on Toy Dogs','That''s not a dog.  THAT''s a dog!',0);
@@ -49,7 +50,7 @@ INSERT INTO comment (id,post_id,name,comment) VALUES (3,3,'rider','I prefer moto
 --  4  5   6  7
 
 INSERT INTO node (id, parent_id) VALUES (1,null);
-INSERT INTO node (id, parent_id) VALUES (2,1); 
+INSERT INTO node (id, parent_id) VALUES (2,1);
 INSERT INTO node (id, parent_id) VALUES (3,1);
 INSERT INTO node (id, parent_id) VALUES (4,2);
 INSERT INTO node (id, parent_id) VALUES (5,2);

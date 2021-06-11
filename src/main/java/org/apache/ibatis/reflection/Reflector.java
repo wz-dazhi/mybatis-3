@@ -15,12 +15,30 @@
  */
 package org.apache.ibatis.reflection;
 
-import org.apache.ibatis.reflection.invoker.*;
+import org.apache.ibatis.reflection.invoker.AmbiguousMethodInvoker;
+import org.apache.ibatis.reflection.invoker.GetFieldInvoker;
+import org.apache.ibatis.reflection.invoker.Invoker;
+import org.apache.ibatis.reflection.invoker.MethodInvoker;
+import org.apache.ibatis.reflection.invoker.SetFieldInvoker;
 import org.apache.ibatis.reflection.property.PropertyNamer;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.ReflectPermission;
+import java.lang.reflect.Type;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -53,11 +71,11 @@ public class Reflector {
    */
   private final Map<String, Invoker> getMethods = new HashMap<>();
   /**
-   * set 方法 Class对象
+   * set 方法 参数的 Class对象
    */
   private final Map<String, Class<?>> setTypes = new HashMap<>();
   /**
-   * get 方法 Class对象
+   * get 方法 返回的 Class对象
    */
   private final Map<String, Class<?>> getTypes = new HashMap<>();
   /**
@@ -458,6 +476,9 @@ public class Reflector {
     }
   }
 
+  /**
+   * 是否存在默认构造器
+   */
   public boolean hasDefaultConstructor() {
     return defaultConstructor != null;
   }

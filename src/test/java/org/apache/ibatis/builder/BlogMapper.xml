@@ -153,4 +153,7 @@
     select * from post order by id
   </select>
 
+  <select id="selectByIdAndTitle" resultType="java.util.Map">
+    select * from blog where id=#{0} and title=#{1}
+  </select>
 </mapper>
